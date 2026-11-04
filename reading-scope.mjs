@@ -1,6 +1,6 @@
-// Preserve original items and DOM ranges; filter only the playback queue.
+// Preserve original item, voice and DOM ranges; skip only non-character content.
 export function scopeItems(items,dialogueOnly=false) {
-    return items.filter(item=>!dialogueOnly||item.kind==='dialogue');
+    return items.filter(item=>!dialogueOnly||item.kind==='dialogue'||item.kind==='thought');
 }
 export function scopeStart(items,start,{sourceStart=false,single=false}={}) {
     if(!Number.isInteger(start)||start<0)return -1;

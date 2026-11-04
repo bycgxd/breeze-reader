@@ -60,7 +60,7 @@ export function onEnable() {
             <p class="br-hint">台词和心理活动按整个气泡朗读，旁白逐句朗读。原正文同步高亮；情绪标签当前仅作显示。</p>
           </details>
           <details class="br-casting" open><summary>多角色朗读设置</summary>
-            <label class="br-follow-label"><input type="checkbox" class="br-dialogue-only">只读角色对白（跳过旁白与心理活动）</label>
+            <label class="br-follow-label"><input type="checkbox" class="br-dialogue-only">只读对白与心声（跳过旁白）</label>
             <p class="br-character"></p>
             <label class="br-field">朗读配音模式<select class="br-reading-mode" aria-label="朗读配音模式"><option value="multi">多角色配音 · 人物与旁白分别指定</option><option value="single">统一音色 · 全部使用默认声音</option></select></label>
             <label class="br-field">默认声音<select class="br-voice" aria-label="朗读音色"></select></label>
@@ -254,7 +254,7 @@ export function onEnable() {
         const element=messageElement(id),report=collectRenderedMessage(element);
         if(!report.blocks.length || report.loadingFrames || report.inaccessibleFrames){status(renderedSummary(report),true);return;}
         const items=inScope(assignVoices(makeSentences(report.blocks)));
-        if(!items.length){status(config.dialogueOnly?'当前消息没有可朗读的角色对白。':'请选择有效的句子。',true);return;}
+        if(!items.length){status(config.dialogueOnly?'当前消息没有可朗读的角色对白或心声。':'请选择有效的句子。',true);return;}
         const ctrl=background=new AbortController(),signature=renderedSignature(report.blocks),chatOwner=owner();
         const unwatch=observeRenderedMessage(element,next=>{if(signature!==renderedSignature(next.blocks)){ctrl.abort();if(background===ctrl)status('正文已变化，已取消旧的预生成。');}});
         try {
@@ -308,7 +308,7 @@ export function onEnable() {
         }
         const items = inScope(assignVoices(makeSentences(report.blocks)));
         const position=scopeStart(items,start,{sourceStart,single});
-        if(position<0){if(config.dialogueOnly)stop('此处没有可朗读的角色对白，已跳过旁白与心理活动。');else status('正文句子已变化，请重新选择。',true);return;}
+        if(position<0){if(config.dialogueOnly)stop('此处没有可朗读的角色对白或心声，已跳过旁白。');else status('正文句子已变化，请重新选择。',true);return;}
         startReading(id,report,items,{start:position,single});
     }
     function startReading(id,report,items,{start=0,single=false,selection=false}={}){
@@ -324,7 +324,7 @@ export function onEnable() {
         if(!element || renderedSignature(report.blocks)!==snapshot.signature){status('正文已变化，请重新选择后朗读。',true);return;}
         if(action!=='selection'){readMessage(snapshot.messageId,{start:snapshot.firstIndex,single:action==='sentence',toggle:false,sourceStart:true});return;}
         const items=inScope(assignVoices(selectedSentences(makeSentences(report.blocks),snapshot.range)));
-        if(!items.length){if(config.dialogueOnly)stop('选区没有可朗读的角色对白。');else status('选中文字已失效，请重新选择。',true);return;}
+        if(!items.length){if(config.dialogueOnly)stop('选区没有可朗读的角色对白或心声。');else status('选中文字已失效，请重新选择。',true);return;}
         startReading(snapshot.messageId,report,items,{selection:true});
     }
     function restartExcerpt(action){
@@ -380,7 +380,7 @@ export function onEnable() {
         if (disposed) return;
         lastReport = report; previewSentences = inScope(assignVoices(makeSentences(report.blocks)));
         root.querySelector('.br-preview-title').textContent = `消息 #${previewId} · ${previewSentences.length} 句`;
-        root.querySelector('.br-preview-summary').textContent = renderedSummary(report)+(config.dialogueOnly?' · 只读角色对白，跳过旁白与心理活动':'');
+        root.querySelector('.br-preview-summary').textContent = renderedSummary(report)+(config.dialogueOnly?' · 只读对白与心声，跳过旁白':'');
         const items = previewSentences.map((sentence,index)=>{
             const item = document.createElement('li'); item.dataset.sentence = index;
             const meta = document.createElement('div'); meta.className = 'br-preview-meta';
@@ -533,7 +533,7 @@ export function onEnable() {
     listen(root.querySelector('.br-cache-enabled'),'change',event=>{stop('');config.cacheEnabled=event.target.checked;save();status(config.cacheEnabled?'音频缓存已开启。':'音频缓存已关闭，已有缓存保留，可手动清理。');});
     listen(root.querySelector('.br-content-interactions'),'change',event=>{config.contentInteractions=event.target.checked;contentInteraction.hide();root.querySelector('.br-click-read').disabled=!config.contentInteractions;root.querySelector('.br-point-read').disabled=!config.contentInteractions;save();status(config.contentInteractions?'正文快捷朗读已开启。':'正文快捷朗读已关闭，原有播放按钮仍可使用。');});
     listen(root.querySelector('.br-click-read'),'change',event=>{config.clickToRead=event.target.checked;contentInteraction.hide();save();status(config.clickToRead?'单击正文会读本句，拖选和双击选字仍正常使用。':'单击朗读已关闭，仍可选字、右键或 Alt 点击。');});
-    listen(root.querySelector('.br-dialogue-only'),'change',event=>{config.dialogueOnly=event.target.checked;stop('');save();if(lastReport&&previewId!==null)renderPreview(lastReport);status(config.dialogueOnly?'已切换为只读角色对白，旁白与心理活动将跳过。':'已切换为朗读全部正文。');});
+    listen(root.querySelector('.br-dialogue-only'),'change',event=>{config.dialogueOnly=event.target.checked;stop('');save();if(lastReport&&previewId!==null)renderPreview(lastReport);status(config.dialogueOnly?'已切换为只读对白与心声，旁白将跳过。':'已切换为朗读全部正文。');});
     listen(root.querySelector('.br-point-read'),'change',event=>{config.tapToContinue=event.target.checked;contentInteraction.hide();save();status(config.tapToContinue?'点读已开启：点正文从这里连续朗读。':'点读已关闭。');});
     listen(root.querySelector('.br-follow'),'change',event=>{config.follow=event.target.checked;following=config.follow;save();controls();if(following)highlighter.reveal();});
     listen(root.querySelector('.br-rate'),'input',event=>{config.rate=Number(event.target.value);root.querySelector('.br-rate-value').textContent=`${config.rate.toFixed(2)}×`;if(player.state.active){stop('已保存速度，重新播放时生效。');}save();});
