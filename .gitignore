@@ -1,0 +1,26 @@
+# Local secrets and personal settings
+.env
+.env.*
+!.env.example
+*key.txt
+*token.txt
+手机连接说明.txt
+settings.json
+*.pem
+*.key
+# Generated files and large local assets
+__pycache__/
+*.py[cod]
+.DS_Store
+._*
+__MACOSX/
+*.log
+*.zip
+*.gguf
+*.breeze
+*.wav
+*.pcm
+node_modules/
+cache/
+logs/
+model-voices/

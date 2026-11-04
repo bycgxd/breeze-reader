@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {createPointGesture} from './point-gesture.mjs';
+let clock=0;
+const gesture=createPointGesture({now:()=>clock});
+const event={pointerId:1,clientX:10,clientY:20,button:0,isPrimary:true};
+gesture.down(event);clock=100;gesture.up(event);assert(gesture.consume());assert(!gesture.consume());
+gesture.down(event);gesture.move({...event,clientX:40});gesture.up(event);assert(!gesture.consume(),'Dragging must not become a tap even when it returns to the start');
+gesture.down(event);clock+=451;gesture.up(event);assert(!gesture.consume(),'Long presses preserve selection');
+gesture.down(event);gesture.cancel();gesture.up(event);assert(!gesture.consume());
+gesture.down({...event,isPrimary:false});gesture.up(event);assert(!gesture.consume());
+gesture.down(event);gesture.up({...event,pointerId:2});assert(!gesture.consume());
+gesture.down({...event,button:2});gesture.up(event);assert(!gesture.consume());
+console.log('Point gesture checks passed: short tap, one-shot consumption, drag, hold, cancellation and pointer filtering');

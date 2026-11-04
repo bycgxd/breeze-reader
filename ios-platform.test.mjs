@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {createIOSPlayer} from './ios-platform.mjs';
+import {createAudioCache} from './cache.mjs';
+assert.equal(createIOSPlayer({}),null,'Regular browsers keep the web player');
+const calls=[],stored=[],started=[];
+const bridge={version:1,async post(action,value){calls.push({action,value});}};
+globalThis.__nativeIOSReader=bridge;
+try {
+    const cache=createAudioCache('ios-check',{storage:null});
+    await cache.put('audio','chat',new Blob(['native-cache']));
+    assert.equal(await (await cache.get('audio','chat')).text(),'native-cache');
+    await cache.clear();cache.close();
+    const plan={items:[{segments:[{key:'audio'}]}]},item={id:'sentence',text:'中性测试。'};
+    const options={ios:{async prepare(){return plan;},async cached(){return new Blob([new Uint8Array(147457)]);},async store(...args){stored.push(args);}},valid:()=>true,rate:()=>1,onState(){},clearHighlight(){},onStart(value){started.push(value);}};
+    const player=createIOSPlayer(options);
+    await player.start([item],{messageId:0});
+    assert.deepEqual(calls.map(c=>c.action),['begin','cached','cached','commit']);
+    assert.equal(calls[1].value.offset,0);assert.equal(calls[1].value.last,false);
+    assert.equal(calls[2].value.offset,147456);assert.equal(calls[2].value.last,true);
+    const id=calls[0].value.id;
+    player.receive({id,index:0,phase:'playing',active:true,paused:false});
+    assert.equal(started[0],item);assert.equal(player.state.phase,'playing');
+    await player.pause();assert.equal(calls.at(-1).value.action,'pause');
+    await player.cache({id,key:'audio',offset:0,data:btoa('AB'),last:false});
+    await player.cache({id,key:'audio',offset:2,data:btoa('CD'),last:true});
+    assert.equal(await stored[0][1].text(),'ABCD');assert.equal(stored[0][2],plan);
+    player.stop();player.receive({id,index:0,phase:'playing',active:true});
+    assert.equal(player.state.active,false,'Late native events cannot restart stopped playback');
+    assert.equal(await player.cache({id,key:'audio',offset:0,data:'',last:true}),false);
+    let release;const gate=new Promise(resolve=>{release=resolve;});
+    const pending=createIOSPlayer({...options,ios:{...options.ios,prepare:()=>gate}});
+    const task=pending.start([item]);pending.stop();const count=calls.length;release(plan);await task;
+    assert.equal(calls.length,count,'Cancelled preparation must not begin native playback');
+    pending.dispose();player.dispose();
+    console.log('iOS interface checks passed: browser fallback, chunked cache, controls, playback state and cancellation');
+} finally {delete globalThis.__nativeIOSReader;}

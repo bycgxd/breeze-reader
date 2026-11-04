@@ -1,0 +1,16 @@
+{
+  "display_name": "轻声 · 本地朗读",
+  "author": "Local",
+  "version": "1.7.4-ios.1",
+  "loading_order": 120,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "auto_update": false,
+  "hooks": {
+    "enable": "onEnable",
+    "disable": "onDisable",
+    "delete": "onDisable"
+  }
+}

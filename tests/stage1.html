@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>轻声第一步 · 中性样例验证</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+body{font:15px/1.7 system-ui;background:#f6f4ef;color:#293b35;margin:25px auto;max-width:950px;padding:0 20px;--SmartThemeBodyColor:#293b35;--SmartThemeBlurTintColor:#f6f4ef}
+#test-results{white-space:pre-wrap;background:#e8eee9;padding:18px;border-radius:12px} .mes{border:1px solid #ccd6cd;border-radius:12px;padding:14px;margin:12px 0}.mes_buttons{display:flex;gap:6px;justify-content:flex-end}.dc-msg{border-left:3px solid #76a38b;padding:8px 15px;margin:12px 0}.dc-msg-header{font-weight:bold}.dc-msg-mood{margin-left:12px;font-weight:normal;font-size:12px}.dc-narration-block{padding:8px 0}iframe{width:100%;height:190px;border:0}#send_form{padding:15px}#show-demo{padding:8px 15px;font:inherit}
+</style>
+<h1>轻声第一步：隔离验证</h1>
+<p>本页使用中性测试样例和模拟酒馆上下文，不修改真实聊天、脚本、正则或酒馆设置，不调用模型。</p>
+<pre id="test-results">正在执行检查…</pre>
+<button id="show-demo" type="button" hidden>查看中性样例的朗读清单</button>
+<main><div id="chat"></div><form id="send_form"><textarea aria-label="测试输入框"></textarea></form></main>
+<div id="extensions_settings"></div>
+<script type="module" src="./stage1.mjs"></script>
+</html>

@@ -1,0 +1,33 @@
+name: breeze-reader
+services:
+  bridge:
+    image: python:3.12-alpine
+    container_name: breeze-reader-bridge
+    restart: unless-stopped
+    working_dir: /app
+    command: [python, -B, bridge.py, --host, 0.0.0.0, --port, '8790', --model, 'http://host.docker.internal:8080', --voices, /voices, --legacy-voices, /legacy-voices, --origin, 'http://192.168.31.178:8000', --origin, 'http://localhost:8000', --origin, 'http://127.0.0.1:8000', --allow-host, '192.168.31.178']
+    environment:
+      BREEZE_ACCESS_KEY: '${BREEZE_ACCESS_KEY:?请通过启动手机连接.bat设置连接密钥}'
+    ports:
+      - '192.168.31.178:8790:8790'
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+        read_only: true
+      - type: bind
+        source: 'D:\BASE\桌面\work\素材库\音色'
+        target: /voices
+        read_only: true
+      - type: bind
+        source: 'D:\BASE\桌面\其他工作区\语音\voices'
+        target: /legacy-voices
+        read_only: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import os,urllib.request; urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8790/health',headers={'X-Breeze-Key':os.environ['BREEZE_ACCESS_KEY']}),timeout=3).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 3

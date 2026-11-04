@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readPcm,pcmWav,cachedPcm} from './stream.mjs';
+import {createStreamPlayer} from './stream-player.mjs';
+const bytes=new Uint8Array([0,128,0,0,255,127]);
+const response=new Response(new ReadableStream({start(c){c.enqueue(bytes.subarray(0,1));c.enqueue(bytes.subarray(1,5));c.enqueue(bytes.subarray(5));c.close();}}),{headers:{'Content-Type':'audio/pcm'}});
+const parts=[];for await(const part of readPcm(response))parts.push(...part);assert.deepEqual(parts,[-1,0,32767/32768]);
+const wav=pcmWav([new Float32Array(parts)]),restored=[];for await(const part of cachedPcm(wav))restored.push(...part);assert.deepEqual(restored,parts);
+await assert.rejects(async()=>{for await(const part of cachedPcm(new Blob([new Uint8Array(44)]))){}},/格式无效/);
+const truncated=new Response(new Uint8Array([1]),{headers:{'Content-Type':'audio/pcm'}});await assert.rejects(async()=>{for await(const part of readPcm(truncated)){}},/不完整/);
+let release,ended=false,starts=[],scheduled=[],phase,clock=0,running=true;
+const interval=setInterval(()=>{if(running)clock+=.025;},5);
+const context={get currentTime(){return clock;},destination:{},async resume(){running=true;},async suspend(){running=false;},async close(){running=false;},createBuffer(ch,length,rate){return {duration:length/rate,copyToChannel(){}};},createBufferSource(){return {playbackRate:{value:1},connect(){},start(time){scheduled.push({time,duration:this.buffer.duration});},stop(){}};}};
+const player=createStreamPlayer({createContext:()=>context,async *generate(){yield new Float32Array(48000);await new Promise(r=>{release=r;});yield new Float32Array(24000);ended=true;},onStart(item){starts.push(item.id);},onState(s){phase=s.phase;},clearHighlight(){}});
+const task=player.start([{id:'a'}],{quick:true});await new Promise(r=>setTimeout(r,60));assert(scheduled.length>0&&!ended,'First PCM must be scheduled before synthesis finishes');assert.deepEqual(starts,['a']);
+player.pause();await new Promise(r=>setTimeout(r,10));const frozen=clock;await new Promise(r=>setTimeout(r,20));assert.equal(clock,frozen);player.resume();await new Promise(r=>setTimeout(r,10));release();await task;assert.equal(phase,'finished');assert.equal(scheduled[1].time,scheduled[0].time+scheduled[0].duration,'PCM chunks must share one exact audio timeline');
+clearInterval(interval);
+console.log('Stream checks passed: split-byte PCM, WAV cache, early playback, timeline, pause and completion');
