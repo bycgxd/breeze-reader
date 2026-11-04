@@ -4,7 +4,7 @@
 
 ## 两台电脑同步
 
-仓库：<https://github.com/bycgxd/breeze-reader>（私有）。首次安装、更新与提交方法见 [GitHub同步说明.md](GitHub同步说明.md)。仓库只同步插件代码；音色、模型、连接密钥及角色配音设置留在各自设备。
+仓库：<https://github.com/bycgxd/breeze-reader>（公开）。首次安装、更新与提交方法见 [GitHub同步说明.md](GitHub同步说明.md)。仓库只同步插件代码；音色、模型、连接密钥及角色配音设置留在各自设备。
 
 ## 日常使用
 

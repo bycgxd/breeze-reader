@@ -1,6 +1,6 @@
 # 两台电脑同步轻声
 
-仓库：https://github.com/bycgxd/breeze-reader （私有）。两台电脑均需安装 Git 与 GitHub CLI，并执行 `gh auth login`、`gh auth setup-git`，使用有仓库权限的账号。不要在 Git URL 或文件中放访问令牌。
+仓库：https://github.com/bycgxd/breeze-reader （公开）。酒馆可通过扩展管理安装、检查并更新，无需 GitHub 登录。手动克隆或拉取只需安装 Git；提交并推送代码时才需使用有写入权限的账号登录。不要在 Git URL 或文件中放访问令牌。
 
 ## 当前 Windows 电脑
 
